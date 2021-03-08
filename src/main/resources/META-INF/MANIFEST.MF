@@ -1,0 +1,1 @@
+MixinConnector: io.izzel.lightfall.client.LightfallConnector

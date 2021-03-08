@@ -1,10 +1,11 @@
 package io.izzel.lightfall.client.mixin;
 
-import io.izzel.lightfall.client.LightfallClient;
 import io.izzel.lightfall.client.bridge.ClientLoginNetHandlerBridge;
+import io.izzel.lightfall.client.gui.LightfallHandshakeScreen;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.WorkingScreen;
+import net.minecraft.client.gui.screen.MainMenuScreen;
+import net.minecraft.client.gui.screen.MultiplayerScreen;
 import net.minecraft.client.network.login.ClientLoginNetHandler;
 import net.minecraft.client.network.play.ClientPlayNetHandler;
 import net.minecraft.network.NetworkManager;
@@ -32,21 +33,19 @@ public class ClientPlayNetHandlerMixin {
     @Inject(method = "handleCustomPayload", at = @At("HEAD"), cancellable = true)
     private void lightfall$handleCustomPayload(SCustomPayloadPlayPacket packetIn, CallbackInfo ci) {
         if (packetIn.getChannelName().toString().equals("lightfall:reset")) {
-            this.netManager.channel().flush();
-            this.netManager.setConnectionState(ProtocolType.LOGIN);
-            // ack
-            PacketBuffer buffer = new PacketBuffer(Unpooled.wrappedBuffer(RESET_ACK));
-            this.netManager.sendPacket(new CCustomPayloadLoginPacket(0x11FFA1, buffer));
-            WorkingScreen screen = new WorkingScreen();
-            ClientLoginNetHandler netHandler = new ClientLoginNetHandler(this.netManager, this.client, null, screen::displayLoadingString);
-            ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler((ClientPlayNetHandler) (Object) this);
-            this.netManager.setNetHandler(netHandler);
-            LightfallClient.workQueue.add(() -> {
+            this.client.execute(() -> {
+                this.netManager.setConnectionState(ProtocolType.LOGIN);
+                // ack
+                PacketBuffer buffer = new PacketBuffer(Unpooled.wrappedBuffer(RESET_ACK));
+                this.netManager.sendPacket(new CCustomPayloadLoginPacket(0x11FFA1, buffer));
+                LightfallHandshakeScreen screen = new LightfallHandshakeScreen(this.netManager);
+                this.client.displayGuiScreen(screen);
+                ClientLoginNetHandler netHandler = new ClientLoginNetHandler(this.netManager, this.client, new MultiplayerScreen(new MainMenuScreen()), screen::displaySavingString);
+                ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler((ClientPlayNetHandler) (Object) this);
+                this.netManager.setNetHandler(netHandler);
                 if (this.client.world != null) {
                     this.client.world = null;
                 }
-                this.client.displayGuiScreen(screen);
-                ((ThreadTaskExecutorInvoker) this.client).lightfall$dropTasks();
             });
             ci.cancel();
         }
