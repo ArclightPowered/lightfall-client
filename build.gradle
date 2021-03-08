@@ -15,7 +15,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
 group = 'io.izzel.lightfall'
-version = '1.0.0-SNAPSHOT'
+version = '1.0.0'
 archivesBaseName = 'lightfallclient'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
@@ -56,7 +56,8 @@ mixin {
 
 processResources {
     filesMatching("**/mods.toml") {
-        expand 'version': project.version
+        def ver = System.getenv('GITHUB_RUN_NUMBER') ?: 'unknown'
+        expand 'version': project.version + "+$ver"
     }
 }
 
