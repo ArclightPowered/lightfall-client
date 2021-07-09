@@ -9,6 +9,9 @@
   },
   "mixins": [
     "ClientLoginNetHandlerMixin",
-    "MinecraftMixin"
+    "ClientPlayNetHandlerMixin",
+    "FMLHandshakeHandlerMixin",
+    "MinecraftMixin",
+    "NamedTagMixin"
   ]
 }
