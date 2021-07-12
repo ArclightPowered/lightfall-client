@@ -8,5 +8,6 @@ public class LightfallConnector implements IMixinConnector {
     @Override
     public void connect() {
         Mixins.addConfiguration("mixins.lightfall.json");
+        Mixins.addConfiguration("mixins.protocol.json");
     }
 }
