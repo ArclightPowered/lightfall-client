@@ -11,9 +11,8 @@ import io.netty.util.concurrent.Promise;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.locks.LockSupport;
 
-import static java.util.Objects.requireNonNull;
+import static com.ixnah.mc.protocol.util.SpinUtil.spinRequireNonNull;
 
 /**
  * @author 寒兮
@@ -57,12 +56,7 @@ public class HttpClientHandler extends SimpleChannelInboundHandler<Object> imple
 
     @Override
     public Future<HttpResponse> sendRequest(HttpRequest request) {
-        int count = 0; // handlerAdded() 方法会在netty线程中执行,获取时可能为null,自旋等待
-        while (ctx == null && count < 1000) {
-            LockSupport.parkNanos("executing tasks", 1000L);
-            count++;
-        }
-        requireNonNull(ctx, "HttpClientHandler must add to pipeline");
+        spinRequireNonNull(this, "ctx", "HttpClientHandler must add to pipeline");
         Promise<HttpResponse> responsePromise = new DefaultPromise<>(ctx.executor());
         ctx.channel().writeAndFlush(request).addListener(writeFuture -> {
             if (!writeFuture.isSuccess()) {

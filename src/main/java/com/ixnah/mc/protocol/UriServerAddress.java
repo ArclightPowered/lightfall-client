@@ -15,7 +15,7 @@ public class UriServerAddress extends ServerAddress {
 
     public UriServerAddress(URI address) {
         super(address.getHost(), CustomProtocol.getServerUriPort(address));
-        this.address = address;
+        this.address = address.normalize();
     }
 
     public URI getAddress() {

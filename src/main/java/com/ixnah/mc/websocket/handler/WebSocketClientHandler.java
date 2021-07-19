@@ -12,7 +12,8 @@ import io.netty.util.concurrent.Future;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.LockSupport;
+
+import static com.ixnah.mc.protocol.util.SpinUtil.spinRequireNonNull;
 
 /**
  * @author 寒兮
@@ -31,12 +32,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     }
 
     public Future<Void> handshakeFuture() {
-        int count = 0; // handlerAdded() 方法会在netty线程中执行,获取时可能为null,自旋等待
-        while (handshakeFuture == null && count < 1000) {
-            LockSupport.parkNanos("executing tasks", 1000L);
-            count++;
-        }
-        return handshakeFuture;
+        return spinRequireNonNull(this, "handshakeFuture", "WebSocketClientHandler must add to pipeline");
     }
 
     // 被添加到pipeline后开始进行Websocket握手
@@ -67,7 +63,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
         if (msg instanceof FullHttpResponse) {
             FullHttpResponse response = (FullHttpResponse) msg;
-            throw new IllegalStateException("Unexpected FullHttpResponse (getStatus=" + response.getStatus()
+            throw new IllegalStateException("Unexpected FullHttpResponse (getStatus=" + response.status()
                     + ", content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
         }
 

@@ -31,6 +31,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.ixnah.mc.protocol.CustomProtocol.URI_REGEX;
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author 寒兮
@@ -51,8 +52,13 @@ public abstract class ConnectingScreenMixin extends Screen {
     private boolean cancel;
     @Shadow
     @Final
-    private final Screen previousGuiScreen = null;
+    private Screen previousGuiScreen;
+
     private URI serverUri;
+
+    @Shadow
+    private void func_209514_a(ITextComponent p_209514_1_) {
+    }
 
     protected ConnectingScreenMixin(ITextComponent titleIn) {
         super(titleIn);
@@ -80,20 +86,6 @@ public abstract class ConnectingScreenMixin extends Screen {
         this.connect(ip, port);
     }
 
-//    @Mixin(targets = "net.minecraft.client.gui.screen.ConnectingScreen$1", remap = false)
-//    class ConnectThreadMixin {
-//        @Inject(method = "run", at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/network/NetworkManager;createNetworkManagerAndConnect(Ljava/net/InetAddress;IZ)Lnet/minecraft/network/NetworkManager;"))
-//        private void onConnect(CallbackInfo ci) {
-//            if (ConnectingScreenMixin.this.serverUri != null) {
-//                ((CustomProtocolBridge) ConnectingScreenMixin.this.networkManager).setServerUri(ConnectingScreenMixin.this.serverUri);
-//            }
-//        }
-//    }
-
-    @Shadow
-    private void func_209514_a(ITextComponent p_209514_1_) {
-    }
-
     /**
      * @author 寒兮
      * @reason Mixin不支持非static class
@@ -101,6 +93,7 @@ public abstract class ConnectingScreenMixin extends Screen {
      */
     @Overwrite
     private void connect(final String ip, final int port) {
+        requireNonNull(this.minecraft, "Minecraft must not be null!");
         LOGGER.info("Connecting to {}, {}", ip, port);
         Thread thread = new Thread(() -> {
             InetAddress inetaddress = null;
