@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
@@ -18,10 +18,10 @@ group = 'io.izzel.lightfall'
 version = '1.0.0'
 archivesBaseName = 'lightfallclient'
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-    mappings channel: 'snapshot', version: "20210215-1.16.3"
+    mappings channel: 'official', version: "1.18"
     runs {
         client {
             workingDirectory project.file('run')
@@ -46,8 +46,8 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.0.46'
-    compile 'org.spongepowered:mixin:0.8.2'
+    minecraft 'net.minecraftforge:forge:1.18-38.0.12'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 mixin {

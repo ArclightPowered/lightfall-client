@@ -2,31 +2,31 @@ package io.izzel.lightfall.client.mixin;
 
 import io.izzel.lightfall.client.bridge.ClientLoginNetHandlerBridge;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.login.ClientLoginNetHandler;
-import net.minecraft.client.network.play.ClientPlayNetHandler;
-import net.minecraft.network.INetHandler;
+import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.PacketListener;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(ClientLoginNetHandler.class)
+@Mixin(ClientHandshakePacketListenerImpl.class)
 public class ClientLoginNetHandlerMixin implements ClientLoginNetHandlerBridge {
 
-    @Shadow @Final private Minecraft mc;
+    @Shadow @Final private Minecraft minecraft;
 
-    private ClientPlayNetHandler lightfall$reuse;
+    private ClientPacketListener lightfall$reuse;
 
     @Override
-    public void bridge$reusePlayHandler(ClientPlayNetHandler handler) {
+    public void bridge$reusePlayHandler(ClientPacketListener handler) {
         this.lightfall$reuse = handler;
     }
 
-    @ModifyArg(method = "handleLoginSuccess", index = 0, at = @At(value = "INVOKE", target = "Lnet/minecraft/network/NetworkManager;setNetHandler(Lnet/minecraft/network/INetHandler;)V"))
-    private INetHandler lightfall$reuse(INetHandler origin) {
+    @ModifyArg(method = "handleGameProfile", index = 0, at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;setListener(Lnet/minecraft/network/PacketListener;)V"))
+    private PacketListener lightfall$reuse(PacketListener origin) {
         if (lightfall$reuse != null) {
-            this.mc.world = lightfall$reuse.getWorld();
+            this.minecraft.level = lightfall$reuse.getLevel();
         }
         return lightfall$reuse == null ? origin : lightfall$reuse;
     }

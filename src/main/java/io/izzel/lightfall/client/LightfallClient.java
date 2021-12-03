@@ -4,21 +4,22 @@ import io.izzel.lightfall.client.bridge.ClientLoginNetHandlerBridge;
 import io.izzel.lightfall.client.gui.LightfallHandshakeScreen;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.MainMenuScreen;
-import net.minecraft.client.gui.screen.MultiplayerScreen;
-import net.minecraft.client.network.login.ClientLoginNetHandler;
-import net.minecraft.client.network.play.ClientPlayNetHandler;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.ProtocolType;
-import net.minecraft.network.login.client.CCustomPayloadLoginPacket;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.ConnectionProtocol;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.login.ServerboundCustomQueryPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.IExtensionPoint;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.event.EventNetworkChannel;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.registries.GameData;
 
 import java.nio.charset.StandardCharsets;
@@ -30,10 +31,12 @@ public class LightfallClient {
 
     public LightfallClient() {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerChannel);
+        ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class,
+            () -> new IExtensionPoint.DisplayTest(() -> "", (a, b) -> b));
     }
 
     private void registerChannel() {
-        EventNetworkChannel channel = NetworkRegistry.newEventChannel(
+        var channel = NetworkRegistry.newEventChannel(
             new ResourceLocation("lightfall", "reset"),
             () -> "1", s -> true, s -> true
         );
@@ -41,25 +44,25 @@ public class LightfallClient {
     }
 
     private void handleReset(NetworkEvent.ServerCustomPayloadEvent event) {
-        NetworkEvent.Context context = event.getSource().get();
-        NetworkManager netManager = context.getNetworkManager();
-        if (netManager == null || !(netManager.getNetHandler() instanceof ClientPlayNetHandler)) {
+        var context = event.getSource().get();
+        var netManager = context.getNetworkManager();
+        if (netManager == null || !(netManager.getPacketListener() instanceof ClientGamePacketListener)) {
             return;
         }
         context.enqueueWork(() -> {
-            Minecraft client = Minecraft.getInstance();
-            LightfallHandshakeScreen screen = new LightfallHandshakeScreen(netManager);
-            client.displayGuiScreen(screen);
-            if (client.world != null) {
+            var client = Minecraft.getInstance();
+            var screen = new LightfallHandshakeScreen(netManager);
+            client.setScreen(screen);
+            if (client.level != null) {
                 GameData.revertToFrozen();
-                client.world = null;
+                client.level = null;
             }
-            netManager.setConnectionState(ProtocolType.LOGIN);
-            PacketBuffer buffer = new PacketBuffer(Unpooled.wrappedBuffer(RESET_ACK));
-            netManager.sendPacket(new CCustomPayloadLoginPacket(0x11FFA1, buffer));
-            ClientLoginNetHandler netHandler = new ClientLoginNetHandler(netManager, client, new MultiplayerScreen(new MainMenuScreen()), screen::displaySavingString);
-            ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler((ClientPlayNetHandler) netManager.getNetHandler());
-            netManager.setNetHandler(netHandler);
+            netManager.setProtocol(ConnectionProtocol.LOGIN);
+            var buffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(RESET_ACK));
+            netManager.send(new ServerboundCustomQueryPacket(0x11FFA1, buffer));
+            var netHandler = new ClientHandshakePacketListenerImpl(netManager, client, new JoinMultiplayerScreen(new TitleScreen()), screen::setComponent);
+            ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler((ClientPacketListener) netManager.getPacketListener());
+            netManager.setListener(netHandler);
         });
         context.setPacketHandled(true);
     }
