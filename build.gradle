@@ -2,7 +2,6 @@ buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
         maven { url = 'https://repo.spongepowered.org/maven' }
-        jcenter()
         mavenCentral()
     }
     dependencies {
@@ -15,13 +14,13 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
 group = 'io.izzel.lightfall'
-version = '1.0.0'
+version = '1.0.1'
 archivesBaseName = 'lightfallclient'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-    mappings channel: 'official', version: "1.18"
+    mappings channel: 'official', version: "1.18.2"
     runs {
         client {
             workingDirectory project.file('run')
@@ -46,7 +45,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18-38.0.12'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
@@ -62,5 +61,5 @@ processResources {
 }
 
 jar {
-    manifest.attributes MixinConnector: 'io.izzel.lightfall.client.LightfallConnector'
+    manifest.attributes MixinConfigs: 'mixins.lightfall.json'
 }
