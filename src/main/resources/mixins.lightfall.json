@@ -7,7 +7,7 @@
   "injectors": {
     "defaultRequire": 1
   },
-  "mixins": [
+  "client": [
     "ClientLoginNetHandlerMixin"
   ]
 }

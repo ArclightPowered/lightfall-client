@@ -30,40 +30,43 @@ public class LightfallClient {
     private static final byte[] RESET_ACK = "lightfall:ack".getBytes(StandardCharsets.UTF_8);
 
     public LightfallClient() {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerChannel);
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientSetup::registerChannel);
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class,
-            () -> new IExtensionPoint.DisplayTest(() -> "", (a, b) -> b));
+            () -> new IExtensionPoint.DisplayTest(() -> "", (a, b) -> true));
     }
 
-    private void registerChannel() {
-        var channel = NetworkRegistry.newEventChannel(
-            new ResourceLocation("lightfall", "reset"),
-            () -> "1", s -> true, s -> true
-        );
-        channel.addListener(this::handleReset);
-    }
+    public static class ClientSetup {
 
-    private void handleReset(NetworkEvent.ServerCustomPayloadEvent event) {
-        var context = event.getSource().get();
-        var netManager = context.getNetworkManager();
-        if (netManager == null || !(netManager.getPacketListener() instanceof ClientGamePacketListener)) {
-            return;
+        private static void registerChannel() {
+            var channel = NetworkRegistry.newEventChannel(
+                new ResourceLocation("lightfall", "reset"),
+                () -> "1", s -> true, s -> true
+            );
+            channel.addListener(ClientSetup::handleReset);
         }
-        context.enqueueWork(() -> {
-            var client = Minecraft.getInstance();
-            var screen = new LightfallHandshakeScreen(netManager);
-            client.setScreen(screen);
-            if (client.level != null) {
-                GameData.revertToFrozen();
-                client.level = null;
+
+        private static void handleReset(NetworkEvent.ServerCustomPayloadEvent event) {
+            var context = event.getSource().get();
+            var netManager = context.getNetworkManager();
+            if (netManager == null || !(netManager.getPacketListener() instanceof ClientGamePacketListener)) {
+                return;
             }
-            netManager.setProtocol(ConnectionProtocol.LOGIN);
-            var buffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(RESET_ACK));
-            netManager.send(new ServerboundCustomQueryPacket(0x11FFA1, buffer));
-            var netHandler = new ClientHandshakePacketListenerImpl(netManager, client, new JoinMultiplayerScreen(new TitleScreen()), screen::setComponent);
-            ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler((ClientPacketListener) netManager.getPacketListener());
-            netManager.setListener(netHandler);
-        });
-        context.setPacketHandled(true);
+            context.enqueueWork(() -> {
+                var client = Minecraft.getInstance();
+                var screen = new LightfallHandshakeScreen(netManager);
+                client.setScreen(screen);
+                if (client.level != null) {
+                    GameData.revertToFrozen();
+                    client.level = null;
+                }
+                netManager.setProtocol(ConnectionProtocol.LOGIN);
+                var buffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(RESET_ACK));
+                netManager.send(new ServerboundCustomQueryPacket(0x11FFA1, buffer));
+                var netHandler = new ClientHandshakePacketListenerImpl(netManager, client, new JoinMultiplayerScreen(new TitleScreen()), screen::setComponent);
+                ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler((ClientPacketListener) netManager.getPacketListener());
+                netManager.setListener(netHandler);
+            });
+            context.setPacketHandled(true);
+        }
     }
 }
