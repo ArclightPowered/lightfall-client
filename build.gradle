@@ -14,7 +14,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
 group = 'io.izzel.lightfall'
-version = '1.0.2'
+version = '1.0.3'
 archivesBaseName = 'lightfallclient'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
