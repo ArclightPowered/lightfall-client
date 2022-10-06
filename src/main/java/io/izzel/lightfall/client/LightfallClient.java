@@ -18,6 +18,7 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.registries.GameData;
@@ -32,7 +33,7 @@ public class LightfallClient {
     public LightfallClient() {
         DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientSetup::registerChannel);
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class,
-            () -> new IExtensionPoint.DisplayTest(() -> "", (a, b) -> true));
+            () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (a, b) -> true));
     }
 
     public static class ClientSetup {
@@ -65,7 +66,7 @@ public class LightfallClient {
                 var netHandler = new ClientHandshakePacketListenerImpl(netManager, client, new JoinMultiplayerScreen(new TitleScreen()), screen::setComponent);
                 ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler((ClientPacketListener) netManager.getPacketListener());
                 netManager.setListener(netHandler);
-            });
+            }).join();
             context.setPacketHandled(true);
         }
     }
