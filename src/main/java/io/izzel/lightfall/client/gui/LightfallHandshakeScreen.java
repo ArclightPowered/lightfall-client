@@ -37,14 +37,13 @@ public class LightfallHandshakeScreen extends Screen {
     @Override
     protected void init() {
         this.addRenderableWidget(
-            new Button(this.width / 2 - 100, this.height / 4 + 120 + 12, 200, 20, CommonComponents.GUI_CANCEL,
+            Button.builder(CommonComponents.GUI_CANCEL,
                 button -> {
                     if (this.networkManager.isConnected()) {
                         this.networkManager.disconnect(Component.translatable("connect.aborted"));
                     }
                     this.minecraft.setScreen(new JoinMultiplayerScreen(new TitleScreen()));
-                }
-            )
+                }).bounds(this.width / 2 - 100, this.height / 4 + 120 + 12, 200, 20).build()
         );
     }
 

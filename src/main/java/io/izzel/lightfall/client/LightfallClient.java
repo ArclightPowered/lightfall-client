@@ -2,6 +2,7 @@ package io.izzel.lightfall.client;
 
 import io.izzel.lightfall.client.bridge.ClientLoginNetHandlerBridge;
 import io.izzel.lightfall.client.gui.LightfallHandshakeScreen;
+import io.izzel.lightfall.client.mixin.ClientPacketListenerAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -63,8 +64,11 @@ public class LightfallClient {
                 netManager.setProtocol(ConnectionProtocol.LOGIN);
                 var buffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(RESET_ACK));
                 netManager.send(new ServerboundCustomQueryPacket(0x11FFA1, buffer));
-                var netHandler = new ClientHandshakePacketListenerImpl(netManager, client, new JoinMultiplayerScreen(new TitleScreen()), screen::setComponent);
-                ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler((ClientPacketListener) netManager.getPacketListener());
+                var packetListener = (ClientPacketListener) netManager.getPacketListener();
+                var netHandler = new ClientHandshakePacketListenerImpl(netManager, client,
+                    ((ClientPacketListenerAccessor) packetListener).accessor$getServerData(),
+                    new JoinMultiplayerScreen(new TitleScreen()), false, null, screen::setComponent);
+                ((ClientLoginNetHandlerBridge) netHandler).bridge$reusePlayHandler(packetListener);
                 netManager.setListener(netHandler);
             }).join();
             context.setPacketHandled(true);
