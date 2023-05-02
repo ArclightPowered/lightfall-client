@@ -14,13 +14,13 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
 group = 'io.izzel.lightfall'
-version = '1.1.1'
+version = '1.1.2'
 archivesBaseName = 'lightfallclient'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-    mappings channel: 'official', version: "1.19.3"
+    mappings channel: 'official', version: "1.19.4"
     runs {
         client {
             workingDirectory project.file('run')
@@ -45,7 +45,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.3-44.0.5'
+    minecraft 'net.minecraftforge:forge:1.19.4-45.0.22'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 

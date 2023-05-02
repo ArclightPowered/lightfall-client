@@ -52,7 +52,7 @@ public class LightfallHandshakeScreen extends Screen {
     }
 
     public void render(@NotNull PoseStack poseStack, int p_96531_, int p_96532_, float p_96533_) {
-        this.renderDirtBackground(0);
+        this.renderDirtBackground(poseStack);
         drawCenteredString(poseStack, this.font, component != null ? component : Component.translatable("connect.connecting"),
             this.width / 2, this.height / 2 - 50, 16777215);
         super.render(poseStack, p_96531_, p_96532_, p_96533_);
