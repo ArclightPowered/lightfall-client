@@ -3,6 +3,7 @@ package io.izzel.lightfall.client.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -51,11 +52,11 @@ public class LightfallHandshakeScreen extends Screen {
         this.component = component;
     }
 
-    public void render(@NotNull PoseStack poseStack, int p_96531_, int p_96532_, float p_96533_) {
-        this.renderDirtBackground(poseStack);
-        drawCenteredString(poseStack, this.font, component != null ? component : Component.translatable("connect.connecting"),
+    public void render(@NotNull GuiGraphics gui, int p_96531_, int p_96532_, float p_96533_) {
+        this.renderDirtBackground(gui);
+        gui.drawCenteredString(this.font, component != null ? component : Component.translatable("connect.connecting"),
             this.width / 2, this.height / 2 - 50, 16777215);
-        super.render(poseStack, p_96531_, p_96532_, p_96533_);
+        super.render(gui, p_96531_, p_96532_, p_96533_);
     }
 
     @Override
